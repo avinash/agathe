@@ -1,0 +1,3 @@
+AWS_ACCESS_KEY_ID = 'Your AWS access key ID'
+AWS_SECRET_ACCESS_KEY = 'Your AWS secret access key'
+AMAZON_ASSOCIATE_TAG = 'Your Amazon Associate tag'
