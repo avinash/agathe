@@ -13,9 +13,12 @@ amazon = AmazonAPI(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TA
 
 def lookup(asin):
     try:
-        product = amazon.lookup(ItemId=asin)
+        product = amazon.lookup(IdType='ISBN', SearchIndex='Books', ItemId=asin)
     except AsinNotFound:
         return str(asin) + '\tNot Found'
+
+    if isinstance(product, list):
+        product = product[0]
 
     price = product.list_price[0]
     sales_rank = product._safe_get_element('SalesRank')
@@ -24,6 +27,10 @@ def lookup(asin):
     soup = BeautifulSoup(urlopen(reviews_url))
 
     span = soup.find('span', { 'class': 'crAvgStars'})
+
+    if span is None:
+        return str(asin) + '\t' + 'No reviews'
+
     avg_rating = span.contents[0].contents[1].contents[0]['alt'].split()[0]
     num_ratings = span.contents[2].contents[0].split()[0]
 
