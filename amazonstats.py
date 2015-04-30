@@ -4,8 +4,9 @@ import sys
 import fileinput
 
 from amazon.api import AmazonAPI, AsinNotFound
-from urllib2 import urlopen
 from BeautifulSoup import BeautifulSoup
+from time import sleep
+from urllib2 import urlopen, HTTPError
 
 from amazonconfig import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG
 
@@ -24,8 +25,17 @@ def lookup(asin):
     sales_rank = product._safe_get_element('SalesRank')
 
     reviews_url = product.reviews[1]
-    soup = BeautifulSoup(urlopen(reviews_url))
+    
+    reviews = None
 
+    while not reviews:
+        try:
+            reviews = urlopen(reviews_url)
+        except HTTPError:
+            # let us wait one second and we try again
+            sleep(1)
+
+    soup = BeautifulSoup(reviews)
     span = soup.find('span', { 'class': 'crAvgStars'})
 
     if span is None:
