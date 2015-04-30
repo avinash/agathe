@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
+"""Queries Amazon for details about a list of products (asins)"""
+
 import sys
 import fileinput
 
+from amazonconfig import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG
 from amazon.api import AmazonAPI, AsinNotFound
 from BeautifulSoup import BeautifulSoup
 from time import sleep
 from urllib2 import urlopen, HTTPError
 
-from amazonconfig import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG
-
-amazon = AmazonAPI(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG)
-
 def lookup(asin):
+    """Looks up the asin in Amazon and print details about it"""
     try:
         product = amazon.lookup(IdType='ISBN', SearchIndex='Books', ItemId=asin)
     except AsinNotFound:
@@ -25,7 +25,7 @@ def lookup(asin):
     sales_rank = product._safe_get_element('SalesRank')
 
     reviews_url = product.reviews[1]
-    
+
     reviews = None
 
     while not reviews:
@@ -36,7 +36,7 @@ def lookup(asin):
             sleep(1)
 
     soup = BeautifulSoup(reviews)
-    span = soup.find('span', { 'class': 'crAvgStars'})
+    span = soup.find('span', {'class': 'crAvgStars'})
 
     if span is None:
         return str(asin) + '\t' + 'No reviews'
@@ -46,7 +46,12 @@ def lookup(asin):
 
     return str(asin) + '\t' + str(sales_rank) + '\t' + str(price) + '\t' + str(avg_rating) + '\t' + str(num_ratings)
 
+# The main program which connects to Amazon
+# and queries the API for details about a
+# list of asins
+amazon = AmazonAPI(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG)
+
 for line in fileinput.input():
-    asin = line.rstrip('\n')
-    sys.stdout.write(lookup(asin) + '\n')
+    an_asin = line.rstrip('\n')
+    sys.stdout.write(lookup(an_asin) + '\n')
     sys.stdout.flush()
