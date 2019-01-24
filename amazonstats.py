@@ -49,7 +49,7 @@ def lookup(asin):
 # The main program which connects to Amazon
 # and queries the API for details about a
 # list of asins
-amazon = AmazonAPI(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG)
+amazon = AmazonAPI(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AMAZON_ASSOCIATE_TAG, MaxQPS=0.9)
 
 for line in fileinput.input():
     an_asin = line.rstrip('\n')
