@@ -1,0 +1,10 @@
+Given a list of ASINs, retrieve some relevant data from Amazon.com:
+
+	Title
+	Sales Rank
+	Rating
+	Number of Ratings
+
+This data can then be used in a spreadsheet, for example, to determine the next book to read
+
+Amazon data scraper from https://github.com/scrapehero-code/amazon-scraper

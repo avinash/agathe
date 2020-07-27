@@ -1,0 +1,12 @@
+title:
+    css: '#productTitle'
+    type: Text
+sales_rank:
+    css: 'li#SalesRank'
+    type: Text
+rating:
+    css: 'span[data-hook="rating-out-of-text"]'
+    type: Text
+number_of_ratings:
+    css: 'div[data-hook="total-review-count"] span'
+    type: Text

@@ -1,38 +1,60 @@
-#!/usr/bin/env python
-
-"""Queries Amazon for details about a list of products (asins)"""
-
-import sys
+from selectorlib import Extractor
+from time import sleep
+import requests 
 import fileinput
 
-from amazonconfig import KEY, SECRET, TAG, COUNTRY
-from amazon.paapi import AmazonAPI
-from bs4 import BeautifulSoup
-from time import sleep
-from urllib.request import urlopen, HTTPError
+# Create an Extractor by reading from the YAML file
+e = Extractor.from_yaml_file('selectors.yml')
 
-def get_product(asin):
-    """Looks up the asin in Amazon and print details about it"""
-    product = amazon.get_product(asin)
+def scrape(url):  
 
-    """soup = BeautifulSoup(reviews)
-    span = soup.find('span', {'class': 'crAvgStars'})
+    headers = {
+        'dnt': '1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-user': '?1',
+        'sec-fetch-dest': 'document',
+        'referer': 'https://www.amazon.com/',
+        'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8',
+    }
 
-    if span is None:
-        return str(asin) + '\t' + 'No reviews'
+    # Download the page using requests
+    r = requests.get(url, headers=headers)
+    
+    # Simple check to check if page was blocked (Usually 503)
+    if r.status_code > 500:
+        if "To discuss automated access to Amazon data please contact" in r.text:
+            print("Page %s was blocked by Amazon. Please try using better proxies\n"%asin)
+        else:
+            print("Page %s must have been blocked by Amazon as the status code was %d"%(asin,r.status_code))
+        return None
+    
+    # Pass the HTML of the page and create 
+    return e.extract(r.text)
 
-    avg_rating = span.contents[0].contents[1].contents[0]['alt'].split()[0]
-    num_ratings = span.contents[2].contents[0].split()[0]
+for asin in fileinput.input():
+    data = scrape("https://www.amazon.com/dp/product/" + asin.rstrip()) 
 
-    return str(asin) + '\t' + str(sales_rank) + '\t' + str(price) + '\t' + str(avg_rating) + '\t' + str(num_ratings)"""
-    return product
+    title = data['title']
+    
+    if data['sales_rank'] is None:
+        sales_rank = ""
+    else:
+        sales_rank = data['sales_rank'].split()[4].replace("#","").replace(",","")
+    
+    if data['rating'] is None:
+        rating = ""
+    else:
+        rating = data['rating'].split()[0]
+    
+    if data['number_of_ratings'] is None:
+        number_of_ratings = ""
+    else:
+        number_of_ratings = data['number_of_ratings'].split()[0].replace(",","")
 
-# The main program which connects to Amazon
-# and queries the API for details about a
-# list of asins
-amazon = AmazonAPI(KEY, SECRET, TAG, COUNTRY)
+    print(title, sales_rank, rating, number_of_ratings, sep="\t", flush=True)
 
-for line in fileinput.input():
-    an_asin = line.rstrip('\n')
-    sys.stdout.write(get_product(an_asin) + '\n')
-    sys.stdout.flush()
+    sleep(2)
