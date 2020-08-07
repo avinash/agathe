@@ -1,5 +1,6 @@
 from selectorlib import Extractor
 from time import sleep
+import re
 import requests 
 import fileinput
 
@@ -40,6 +41,13 @@ for asin in fileinput.input():
 
     title = data['title']
     
+    author = data['author']
+    if author != None:
+        author = re.sub(r'^.*\[', '', author)
+        author = re.sub(r'\].*$', '', author)
+    else:
+        author = ""
+    
     if data['sales_rank'] is None:
         sales_rank = ""
     else:
@@ -55,6 +63,6 @@ for asin in fileinput.input():
     else:
         number_of_ratings = data['number_of_ratings'].split()[0].replace(",","")
 
-    print(title, sales_rank, rating, number_of_ratings, sep="\t", flush=True)
+    print(asin.rstrip(), title, author, sales_rank, rating, number_of_ratings, sep="\t", flush=True)
 
     sleep(2)

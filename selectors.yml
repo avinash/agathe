@@ -1,6 +1,10 @@
 title:
     css: '#productTitle'
     type: Text
+author:
+    css: 'img#ebooksImgBlkFront'
+    type: Attribute
+    attribute: alt
 sales_rank:
     css: 'li#SalesRank'
     type: Text
