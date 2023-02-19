@@ -5,12 +5,12 @@ author:
     css: 'img#ebooksImgBlkFront'
     type: Attribute
     attribute: alt
-sales_rank:
-    css: 'li#SalesRank'
-    type: Text
 rating:
     css: 'span[data-hook="rating-out-of-text"]'
     type: Text
 number_of_ratings:
     css: 'div[data-hook="total-review-count"] span'
+    type: Text
+details:
+    css: '#detailBulletsWrapper_feature_div'
     type: Text

@@ -8,7 +8,7 @@ import fileinput
 e = Extractor.from_yaml_file('selectors.yml')
 
 
-def scrape(url):
+def scrape(base_url, asin):
 
     headers = {
         'dnt': '1',
@@ -24,14 +24,15 @@ def scrape(url):
     }
 
     # Download the page using requests
-    r = requests.get(url, headers=headers)
+    r = requests.get(base_url + asin, headers=headers)
 
-    # Simple check to check if page was blocked (Usually 503)
+    # Simple check to check if page was blocked
+    if 'To discuss automated access to Amazon data please contact' in r.text:
+        print('Page %s was blocked by Amazon. Please try using better proxies\n' % asin)
+        return None
+
     if r.status_code > 500:
-        if "To discuss automated access to Amazon data please contact" in r.text:
-            print("Page %s was blocked by Amazon. Please try using better proxies\n" % asin)
-        else:
-            print("Page %s must have been blocked by Amazon as the status code was %d" % (asin, r.status_code))
+        print('Page %s must have been blocked by Amazon as the status code was %d' % (asin, r.status_code))
         return None
 
     # Parse the HTML of the page and create a dictionary with the requested data
@@ -39,32 +40,39 @@ def scrape(url):
 
 
 for asin in fileinput.input():
-    data = scrape("https://www.amazon.com/dp/product/" + asin.rstrip())
+    asin = asin.rstrip()
+    data = scrape('https://www.amazon.com/dp/product/', asin)
 
-    title = data['title']
+    if data is None:
+        print(asin, 'None', sep='\t', flush=True)
+        continue
 
-    author = data['author']
-    if author is not None:
+    title = ''
+    author = ''
+    rating = ''
+    number_of_ratings = ''
+    sales_rank = ''
+
+    if data['title'] is not None:
+        title = data['title']
+
+    if data['author'] is not None:
+        author = data['author']
         author = re.sub(r'^.*\[', '', author)
         author = re.sub(r'\].*$', '', author)
-    else:
-        author = ""
 
-    if data['sales_rank'] is None:
-        sales_rank = ""
-    else:
-        sales_rank = data['sales_rank'].split()[4].replace("#", "").replace(",", "")
-
-    if data['rating'] is None:
-        rating = ""
-    else:
+    if data['rating'] is not None:
         rating = data['rating'].split()[0]
 
-    if data['number_of_ratings'] is None:
-        number_of_ratings = ""
-    else:
-        number_of_ratings = data['number_of_ratings'].split()[0].replace(",", "")
+    if data['number_of_ratings'] is not None:
+        number_of_ratings = data['number_of_ratings'].split()[0].replace(',', '')
 
-    print(asin.rstrip(), title, author, sales_rank, rating, number_of_ratings, sep="\t", flush=True)
+    if data['details'] is not None:
+        split_details = data['details'].split()
+        for i in range(len(split_details)):
+            if split_details[i] == 'Rank:':
+                sales_rank = split_details[i+1].replace('#', '').replace(',', '')
+
+    print(asin, title, author, sales_rank, rating, number_of_ratings, sep='\t', flush=True)
 
     sleep(2)
