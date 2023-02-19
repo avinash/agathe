@@ -46,6 +46,7 @@ for asin in fileinput.input():
 
     if data is None:
         print(asin, 'None', sep='\t', flush=True)
+        sleep(randint(2, 5))
         continue
 
     title = ''
