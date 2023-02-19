@@ -1,3 +1,4 @@
+from random import randint
 from selectorlib import Extractor
 from time import sleep
 import re
@@ -75,4 +76,4 @@ for asin in fileinput.input():
 
     print(asin, title, author, sales_rank, rating, number_of_ratings, sep='\t', flush=True)
 
-    sleep(2)
+    sleep(randint(2, 5))
